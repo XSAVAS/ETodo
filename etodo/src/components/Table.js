@@ -7,7 +7,7 @@ const Table = ({ title, tasks }) => {
   return (
     <Card
       className="me-3 table-column shadow-lg rounded-3"
-      style={{ minWidth: '320px', maxWidth: '320px', height: '420px' }} // toplam yükseklik azaltıldı
+      style={{ minWidth: '320px', maxWidth: '320px', height: '500px' }}
     >
       <CardHeader
         className="bg-gradient text-white fw-bold"
@@ -16,9 +16,10 @@ const Table = ({ title, tasks }) => {
         {title}
       </CardHeader>
       <CardBody
-        className="bg-light overflow-auto"
+        className="overflow-auto"
         style={{
           height: 'calc(100% - 56px)', // header yüksekliği çıkarıldı
+          backgroundColor: 'white', // gri arka plan kaldırıldı
           padding: '0.75rem',
         }}
       >

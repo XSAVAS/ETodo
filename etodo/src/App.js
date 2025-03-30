@@ -6,11 +6,9 @@ import Board from './components/Board';
 
 function App() {
   return (
-    <div className="app-container d-flex justify-content-center align-items-center">
-      <div className="board-wrapper">
-        <h2 className="text-center fw-bold text-primary mb-4"> To Do Board</h2>
-        <Board />
-      </div>
+    <div className="app-container">
+      <h2 className="text-center fw-bold text-white mb-3"> ToDo Board</h2>
+      <Board />
     </div>
   );
 }

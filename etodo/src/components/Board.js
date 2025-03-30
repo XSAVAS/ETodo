@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import Table from './Table';
 import AddTable from './AddTable';
-import { Row } from 'reactstrap';
 
 const Board = () => {
   const [tables, setTables] = useState([
@@ -19,13 +18,18 @@ const Board = () => {
   };
 
   return (
-    <div className="px-4 pb-5" style={{ overflowX: 'auto' }}>
-      <Row className="flex-nowrap" style={{ whiteSpace: 'nowrap' }}>
-        {tables.map((table, index) => (
-          <Table key={index} title={table.title} tasks={table.tasks} />
-        ))}
-        <AddTable onClick={handleAddTable} />
-      </Row>
+    <div
+      style={{
+        display: 'flex',
+        overflowX: 'auto',
+        width: '100%',
+        padding: '10px 0',
+      }}
+    >
+      {tables.map((table, index) => (
+        <Table key={index} title={table.title} tasks={table.tasks} />
+      ))}
+      <AddTable onClick={handleAddTable} />
     </div>
   );
 };
