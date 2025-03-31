@@ -1,170 +1,219 @@
-import React, { useState } from 'react';
-import './index.css';
+import React, { useState } from "react";
 import {
-  Container,
-  Row,
-  Col,
-  Card,
-  CardBody,
-  CardTitle,
   Button,
   Modal,
   ModalHeader,
   ModalBody,
   ModalFooter,
   Input,
-  FormFeedback
-} from 'reactstrap';
+  FormGroup,
+  Label,
+  FormFeedback,
+} from "reactstrap";
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import "./index.css";
+
+const initialTasks = {
+  todo: [
+    { id: "1", title: "Task 1" },
+    { id: "2", title: "Task 2" },
+    { id: "3", title: "Task 3" },
+  ],
+  inProgress: [{ id: "4", title: "Task 4" }],
+  done: [{ id: "5", title: "Task 5" }],
+};
 
 function App() {
-  const [tasks, setTasks] = useState({
-     todo: [
-    { id: 1, title: "Task 1" },
-    { id: 2, title: "Task 2" },
-    { id: 3, title: "Task 3" }
-  ],
-  inProgress: [
-    { id: 4, title: "Task 4" }
-  ],
-  done: [
-    { id: 5, title: "Task 5" }
-  ],
-  });
-
-  const [activeColumn, setActiveColumn] = useState('');
-  const [modalType, setModalType] = useState('add');
+  const [tasks, setTasks] = useState(initialTasks);
   const [modalOpen, setModalOpen] = useState(false);
-  const [newTaskTitle, setNewTaskTitle] = useState('');
-  const [editedTaskId, setEditedTaskId] = useState(null);
+  const [modalMode, setModalMode] = useState("add"); // "add" or "edit"
+  const [targetColumn, setTargetColumn] = useState("");
+  const [newTask, setNewTask] = useState("");
+  const [editTaskId, setEditTaskId] = useState(null);
   const [isInvalid, setIsInvalid] = useState(false);
 
-  const toggleModal = () => {
-    setModalOpen(!modalOpen);
-    setNewTaskTitle('');
-    setEditedTaskId(null);
+  // Modal açma ve kapama işlemlerini ayrı yönetin.
+  const openModal = () => setModalOpen(true);
+  const closeModal = () => {
+    setModalOpen(false);
+    setNewTask("");
     setIsInvalid(false);
+    setEditTaskId(null);
   };
 
-  const openAddModal = (columnKey) => {
-    setModalType('add');
-    setActiveColumn(columnKey);
-    toggleModal();
+  const onDragEnd = (result) => {
+    const { source, destination } = result;
+    if (!destination) return;
+
+    const sourceItems = Array.from(tasks[source.droppableId]);
+    const destItems = Array.from(tasks[destination.droppableId]);
+    const [moved] = sourceItems.splice(source.index, 1);
+
+    if (source.droppableId === destination.droppableId) {
+      sourceItems.splice(destination.index, 0, moved);
+      setTasks((prev) => ({ ...prev, [source.droppableId]: sourceItems }));
+    } else {
+      destItems.splice(destination.index, 0, moved);
+      setTasks((prev) => ({
+        ...prev,
+        [source.droppableId]: sourceItems,
+        [destination.droppableId]: destItems,
+      }));
+    }
   };
 
-  const openEditModal = (columnKey, task) => {
-    setModalType('edit');
-    setActiveColumn(columnKey);
-    setEditedTaskId(task.id);
-    setNewTaskTitle('');
-    toggleModal();
+  const handleAddClick = (columnKey) => {
+    setTargetColumn(columnKey);
+    setModalMode("add");
+    openModal();
   };
 
-  const handleSave = () => {
-    if (newTaskTitle.trim() === '') {
+  const handleEditClick = (columnKey, task) => {
+    setTargetColumn(columnKey);
+    setModalMode("edit");
+    setEditTaskId(task.id);
+    setNewTask(task.title);
+    openModal();
+  };
+
+  const handleDelete = (columnKey, taskId) => {
+    setTasks((prev) => ({
+      ...prev,
+      [columnKey]: prev[columnKey].filter((task) => task.id !== taskId),
+    }));
+  };
+
+  const handleSaveTask = () => {
+    if (newTask.trim() === "") {
       setIsInvalid(true);
       return;
     }
 
-    if (modalType === 'add') {
-      const newTask = {
-        id: Date.now(),
-        title: newTaskTitle.trim(),
+    if (modalMode === "add") {
+      const newItem = {
+        id: Date.now().toString(),
+        title: newTask.trim(),
       };
-      setTasks(prev => ({
+      setTasks((prev) => ({
         ...prev,
-        [activeColumn]: [...prev[activeColumn], newTask],
+        [targetColumn]: [...prev[targetColumn], newItem],
       }));
-    } else if (modalType === 'edit') {
-      setTasks(prev => ({
-        ...prev,
-        [activeColumn]: prev[activeColumn].map(task =>
-          task.id === editedTaskId ? { ...task, title: newTaskTitle.trim() } : task
-        ),
-      }));
+    } else if (modalMode === "edit") {
+      // Tüm kolonları gezerek ilgili görevi güncelliyoruz.
+      setTasks((prev) => {
+        const updated = {};
+        for (const [col, taskList] of Object.entries(prev)) {
+          updated[col] = taskList.map((task) =>
+            task.id === editTaskId ? { ...task, title: newTask.trim() } : task
+          );
+        }
+        return updated;
+      });
     }
 
-    toggleModal();
+    closeModal();
   };
 
-  const handleDelete = (columnKey, taskId) => {
-    setTasks(prev => ({
-      ...prev,
-      [columnKey]: prev[columnKey].filter(task => task.id !== taskId),
-    }));
-  };
-
-  const renderColumn = (key, label, color) => (
-    <Col md="4" key={key}>
-      <Card className="mb-3 column-card">
-        <CardBody>
-          <CardTitle tag="h4" className={`text-center fw-bold text-${color}`}>
-            {label}
-          </CardTitle>
-          {tasks[key].map(task => (
-            <Card className="mb-2 task-card-custom" key={task.id}>
-              <CardBody className="d-flex justify-content-between align-items-center">
-                <span>{task.title}</span>
-                <div>
-                  <Button
-                    color="warning"
-                    size="sm"
-                    className="me-2"
-                    onClick={() => openEditModal(key, task)}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    color="danger"
-                    size="sm"
-                    onClick={() => handleDelete(key, task.id)}
-                  >
-                    Delete
-                  </Button>
-                </div>
-              </CardBody>
-            </Card>
-          ))}
-          <div className="d-flex justify-content-center mt-3">
-            <Button color="primary" size="sm" onClick={() => openAddModal(key)}>
-              + Add Task
-            </Button>
-          </div>
-        </CardBody>
-      </Card>
-    </Col>
-  );
+  const columns = [
+    { key: "todo", title: "Todo", color: "primary" },
+    { key: "inProgress", title: "In Progress", color: "warning" },
+    { key: "done", title: "Done", color: "success" },
+  ];
 
   return (
     <div className="app-container">
-      <h2 className="text-center fw-bold text-white mb-4">ToDo Board</h2>
-      <Container>
-        <Row className="justify-content-center gx-4">
-          {renderColumn('todo', 'Todo', 'primary')}
-          {renderColumn('inProgress', 'In Progress', 'warning')}
-          {renderColumn('done', 'Done', 'success')}
-        </Row>
-      </Container>
+      <h2 className="board-title">ToDo Board</h2>
+      <DragDropContext onDragEnd={onDragEnd}>
+        <div className="board">
+          {columns.map(({ key, title, color }) => (
+            <Droppable droppableId={key} key={key}>
+              {(provided) => (
+                <div
+                  className="column"
+                  ref={provided.innerRef}
+                  {...provided.droppableProps}
+                >
+                  <h5 className={`text-${color} text-center fw-bold mb-3`}>
+                    {title}
+                  </h5>
+                  {tasks[key].map((task, index) => (
+                    <Draggable
+                      key={task.id}
+                      draggableId={task.id}
+                      index={index}
+                    >
+                      {(provided) => (
+                        <div
+                          className="task-card"
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          {...provided.dragHandleProps}
+                        >
+                          <span>{task.title}</span>
+                          <div className="actions">
+                            <Button
+                              color="warning"
+                              size="sm"
+                              className="me-2"
+                              onClick={() => handleEditClick(key, task)}
+                            >
+                              Edit
+                            </Button>
+                            <Button
+                              color="danger"
+                              size="sm"
+                              onClick={() => handleDelete(key, task.id)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        </div>
+                      )}
+                    </Draggable>
+                  ))}
+                  {provided.placeholder}
+                  <div className="text-center mt-2">
+                    <Button
+                      color="primary"
+                      size="sm"
+                      onClick={() => handleAddClick(key)}
+                    >
+                      + Add Task
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </Droppable>
+          ))}
+        </div>
+      </DragDropContext>
 
-      <Modal isOpen={modalOpen} toggle={toggleModal}>
-        <ModalHeader toggle={toggleModal}>
-          {modalType === 'add' ? 'Add New Task' : 'Edit Task'}
+      <Modal isOpen={modalOpen} toggle={closeModal}>
+        <ModalHeader toggle={closeModal}>
+          {modalMode === "add" ? "Add New Task" : "Edit Task"}
         </ModalHeader>
         <ModalBody>
-          <Input
-            placeholder="Task title..."
-            value={newTaskTitle}
-            onChange={(e) => {
-              setNewTaskTitle(e.target.value);
-              setIsInvalid(false);
-            }}
-            invalid={isInvalid}
-          />
-          <FormFeedback>Please enter a valid task title.</FormFeedback>
+          <FormGroup>
+            <Label for="taskTitle">Task Title</Label>
+            <Input
+              id="taskTitle"
+              placeholder="Enter task..."
+              value={newTask}
+              onChange={(e) => {
+                setNewTask(e.target.value);
+                setIsInvalid(false);
+              }}
+              invalid={isInvalid}
+            />
+            <FormFeedback>Please enter a task title.</FormFeedback>
+          </FormGroup>
         </ModalBody>
         <ModalFooter>
-          <Button color="secondary" onClick={toggleModal}>Cancel</Button>
-          <Button color={modalType === 'add' ? 'primary' : 'success'} onClick={handleSave}>
-            {modalType === 'add' ? 'Add' : 'Save'}
+          <Button color="secondary" onClick={closeModal}>
+            Cancel
+          </Button>
+          <Button color="primary" onClick={handleSaveTask}>
+            {modalMode === "add" ? "Add Task" : "Save"}
           </Button>
         </ModalFooter>
       </Modal>
