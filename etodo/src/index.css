@@ -1,19 +1,18 @@
 /* Reset ve temel stil */
-body,
-html {
+body, html {
   margin: 0;
   padding: 0;
-  font-family: "Segoe UI", sans-serif;
+  font-family: 'Segoe UI', sans-serif;
   background: linear-gradient(to right, #ffffff, #2fc0b4);
   min-height: 100vh;
 }
 
 /* Uygulama kapsayıcısı */
 .app-container {
-  padding: 30px 20px;
+  padding: 20px;
 }
 
-/* Başlık */
+/* Board Başlığı */
 .board-title {
   text-align: center;
   color: white;
@@ -22,15 +21,15 @@ html {
   font-size: 26px;
 }
 
-/* Board (sütunlar) */
+/* Board: Kolonların kapsayıcısı */
 .board {
   display: flex;
+  flex-wrap: wrap;
   justify-content: center;
   gap: 20px;
-  flex-wrap: wrap;
 }
 
-/* Her sütun */
+/* Her kolon */
 .column {
   background: white;
   padding: 16px;
@@ -39,9 +38,16 @@ html {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
+  max-height: 600px;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
-.column:hover {
-  overflow-y: auto; /* Fare kolonun üzerine geldiğinde scroll aktif olur */
+
+/* Görev listesi kapsayıcısı */
+.task-list {
+  max-height: 400px;
+  overflow-y: scroll;
+  overflow-x: hidden;
 }
 
 /* Sütun başlığı */
@@ -59,10 +65,9 @@ html {
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   display: flex;
-  justify-content: space-between;
-  align-items: center;
+  flex-direction: column;
   transition: transform 0.2s ease;
 }
 
@@ -71,27 +76,42 @@ html {
   background-color: #eef4ff;
 }
 
-/* Kart içindeki buton grubu */
-.actions {
-  display: flex;
-  gap: 6px;
-}
-
-/* + Add Task butonu */
-.text-center .btn {
-  margin-top: 6px;
-  font-size: 13px;
-  padding: 4px 10px;
-}
-
+/* Atanan kişi bilgisi */
 .assignee-info {
   font-size: 0.8em;
   color: black;
   margin-top: 4px;
 }
 
-.task-list {
-  max-height: 400px; /* İhtiyacınıza göre değeri ayarlayın */
-  overflow-y: scroll; /* Dikey scroll her zaman aktif */
-  overflow-x: hidden; /* Yatay scroll devre dışı */
+/* Butonlar ve eylem alanı */
+.actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+/* Responsive ayarlar */
+@media (max-width: 768px) {
+  .column {
+    width: 90%; /* Mobilde kolonlar geniş ekranın %90'ını kaplar */
+    max-height: 500px; /* Mobilde biraz daha dar yüksekliğe çekilebilir */
+  }
+  .board-title {
+    font-size: 22px;
+    margin-bottom: 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .column {
+    width: 100%;
+    padding: 12px;
+    max-height: 450px;
+  }
+  .task-card {
+    padding: 10px;
+  }
+  .board-title {
+    font-size: 20px;
+  }
 }
