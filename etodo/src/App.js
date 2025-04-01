@@ -68,7 +68,7 @@ const initialTasks = {
   ],
   inProgress: [
     {
-      id: "4",
+      id: "8",
       title: "Task 4",
       description: "Description 4",
       priority: "2",
@@ -77,7 +77,7 @@ const initialTasks = {
   ],
   done: [
     {
-      id: "5",
+      id: "9",
       title: "Task 5",
       description: "Description 5",
       priority: "3",
