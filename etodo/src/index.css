@@ -1,8 +1,9 @@
 /* Reset ve temel stil */
-body, html {
+body,
+html {
   margin: 0;
   padding: 0;
-  font-family: 'Segoe UI', sans-serif;
+  font-family: "Segoe UI", sans-serif;
   background: linear-gradient(to right, #ffffff, #2fc0b4);
   min-height: 100vh;
 }
@@ -38,7 +39,9 @@ body, html {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  min-height: 300px;
+}
+.column:hover {
+  overflow-y: auto; /* Fare kolonun üzerine geldiğinde scroll aktif olur */
 }
 
 /* Sütun başlığı */
@@ -56,7 +59,7 @@ body, html {
   border-radius: 6px;
   padding: 12px;
   margin-bottom: 10px;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -79,4 +82,16 @@ body, html {
   margin-top: 6px;
   font-size: 13px;
   padding: 4px 10px;
+}
+
+.assignee-info {
+  font-size: 0.8em;
+  color: black;
+  margin-top: 4px;
+}
+
+.task-list {
+  max-height: 400px; /* İhtiyacınıza göre değeri ayarlayın */
+  overflow-y: scroll; /* Dikey scroll her zaman aktif */
+  overflow-x: hidden; /* Yatay scroll devre dışı */
 }
