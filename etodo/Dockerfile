@@ -37,4 +37,5 @@ EXPOSE 3000
 
 # Run the application.
 RUN npm install
+RUN node server.js
 CMD npm start
