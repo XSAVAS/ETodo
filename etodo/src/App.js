@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Button,
   Modal,
@@ -13,79 +13,6 @@ import {
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
 import "./index.css";
 
-// İlk görev örnekleri; her task'a ek alanlar ekledik:
-const initialTasks = {
-  todo: [
-    {
-      id: "1",
-      title: "Task 1",
-      description: "Description 1",
-      priority: "1",
-      assignee: "Alice",
-    },
-    {
-      id: "2",
-      title: "Task 2",
-      description: "Description 2",
-      priority: "1",
-      assignee: "Bob",
-    },
-    {
-      id: "3",
-      title: "Task 3",
-      description: "Description 3",
-      priority: "1",
-      assignee: "Charlie",
-    },
-    {
-      id: "4",
-      title: "Task 3",
-      description: "Description 3",
-      priority: "1",
-      assignee: "Charlie",
-    },
-    {
-      id: "5",
-      title: "Task 3",
-      description: "Description 3",
-      priority: "3",
-      assignee: "Charlie",
-    },
-    {
-      id: "6",
-      title: "Task 3",
-      description: "Description 3",
-      priority: "2",
-      assignee: "Charlie",
-    },
-    {
-      id: "7",
-      title: "Task 3",
-      description: "Description 3",
-      priority: "2",
-      assignee: "Charlie",
-    },
-  ],
-  inProgress: [
-    {
-      id: "8",
-      title: "Task 4",
-      description: "Description 4",
-      priority: "2",
-      assignee: "David",
-    },
-  ],
-  done: [
-    {
-      id: "9",
-      title: "Task 5",
-      description: "Description 5",
-      priority: "3",
-      assignee: "Eve",
-    },
-  ],
-};
-
 // Yardımcı fonksiyon: öncelik değerine göre renk döner.
 const getPriorityColor = (priority) => {
   if (priority === "1") return "red";
@@ -95,8 +22,21 @@ const getPriorityColor = (priority) => {
 };
 
 function App() {
-  // Görevler state'i
-  const [tasks, setTasks] = useState(initialTasks);
+  const [tasks, setTasks] = useState({ todo: [], inProgress: [], done: [] });
+
+  useEffect(() => {
+    const fetchTasks = async () => {
+      const response = await fetch("http://localhost:5000/tasks/1"); // Replace 1 with the logged-in user ID
+      const data = await response.json();
+      const groupedTasks = { todo: [], inProgress: [], done: [] };
+      data.forEach((task) => {
+        groupedTasks[task.status].push(task);
+      });
+      setTasks(groupedTasks);
+    };
+    fetchTasks();
+  }, []);
+
   // Add/Edit modal state'i
   const [modalOpen, setModalOpen] = useState(false);
   const [modalMode, setModalMode] = useState("add"); // "add" veya "edit"
@@ -183,37 +123,43 @@ function App() {
   };
 
   // Add veya Edit işlemi için kaydet butonu
-  const handleSaveTask = () => {
+  const handleSaveTask = async () => {
     if (taskForm.title.trim() === "") {
       setIsInvalid(true);
       return;
     }
+
+    const newTask = {
+      userId: 1, // Replace with the logged-in user ID
+      title: taskForm.title.trim(),
+      description: taskForm.description.trim(),
+      priority: taskForm.priority,
+      assignee: taskForm.assignee.trim(),
+      status: targetColumn,
+    };
+
     if (modalMode === "add") {
-      const newItem = {
-        id: Date.now().toString(),
-        title: taskForm.title.trim(),
-        description: taskForm.description.trim(),
-        priority: taskForm.priority,
-        assignee: taskForm.assignee.trim(),
-      };
+      const response = await fetch("http://localhost:5000/tasks", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTask),
+      });
+      const savedTask = await response.json();
       setTasks((prev) => ({
         ...prev,
-        [targetColumn]: [...prev[targetColumn], newItem],
+        [targetColumn]: [...prev[targetColumn], { ...newTask, id: savedTask.id }],
       }));
     } else if (modalMode === "edit") {
+      await fetch(`http://localhost:5000/tasks/${editTaskId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(newTask),
+      });
       setTasks((prev) => {
         const updated = {};
         for (const [col, taskList] of Object.entries(prev)) {
           updated[col] = taskList.map((task) =>
-            task.id === editTaskId
-              ? {
-                  ...task,
-                  title: taskForm.title.trim(),
-                  description: taskForm.description.trim(),
-                  priority: taskForm.priority,
-                  assignee: taskForm.assignee.trim(),
-                }
-              : task
+            task.id === editTaskId ? { ...task, ...newTask } : task
           );
         }
         return updated;
