@@ -36,8 +36,6 @@ COPY . .
 EXPOSE 5000
 
 # Run the application.
-RUN npm install
-RUN node server.js
 CMD npm start
 # CMD node server.js
 # CMD ["npm", "start"]

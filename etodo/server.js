@@ -9,10 +9,10 @@ app.use(cors());
 
 // Database connection
 const db = mysql.createPool({
-  host: "localhost",
+  host: "MariaDB",
   user: "root",
   password: process.env.DB_PASSWORD,
-  port: 32768,
+  port: 3306,
   database: "ETodo",
 });
 
@@ -51,4 +51,4 @@ app.delete("/tasks/:id", async (req, res) => {
   res.sendStatus(200);
 });
 
-app.listen(5000, () => console.log("Server running on http://localhost:5000"));
+app.listen(5000, () => console.log("Server running on http://MariaDB:5000"));
