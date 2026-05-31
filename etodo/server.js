@@ -22,7 +22,7 @@ app.use((req, res, next) => {
 
 // Database connection
 const db = mysql.createPool({
-  host: "MariaDB",
+  host: "mariadb",
   user: "root",
   password: process.env.DB_PASSWORD,
   port: 3306,

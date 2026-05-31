@@ -1,19 +1,4 @@
 services:
-  mariadb:
-    image: mariadb:latest
-    container_name: mariadb
-    restart: always
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_PASSWORD} # <-- Reads from local environment
-      MYSQL_DATABASE: "ETodo"
-    ports:
-      - "3306:3306"
-    volumes:
-      - mariadb_data:/var/lib/mysql
-      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
-    networks:
-      - etodo_network
-
   server:
     build:
       context: .
@@ -21,17 +6,13 @@ services:
     restart: always
     environment:
       NODE_ENV: production
-      DB_PASSWORD: ${DB_PASSWORD} # <-- Reads from local environment
+      DB_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5000:5000"
-    depends_on:
-      - mariadb
     networks:
-      - etodo_network
+      - default # This tells Docker to use the bridge network
 
 networks:
-  etodo_network:
-    driver: bridge
-
-volumes:
-  mariadb_data:
+  default:
+    external: true
+    name: bridge
