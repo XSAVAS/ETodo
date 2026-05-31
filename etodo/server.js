@@ -21,13 +21,30 @@ app.use((req, res, next) => {
 });
 
 // Database connection
+// Database connection
 const db = mysql.createPool({
-  host: "mariadb", // Must be lowercase to match the container name
+  host: "mariadb", 
   user: "root",
   password: process.env.DB_PASSWORD,
-  port: 3306,      // The standard internal MariaDB port
+  port: 3306,
   database: "ETodo",
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
+
+// DATABASE CONNECTION CHECK
+(async () => {
+  try {
+    // A simple query to test the connection
+    await db.query('SELECT 1');
+    console.log("Successfully connected to MariaDB!");
+  } catch (err) {
+    console.error("Database connection failed:", err.message);
+    // You can choose to process.exit(1) here if you want the app to stop 
+    // when the DB is down.
+  }
+})();
 
 const path = require("path");
 
