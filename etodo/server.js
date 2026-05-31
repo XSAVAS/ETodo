@@ -7,6 +7,19 @@ const app = express();
 app.use(bodyParser.json());
 app.use(cors());
 
+// 🛡️ URL SHIELD MIDDLEWARE (Prevents %c0 crashing loop)
+app.use((req, res, next) => {
+  try {
+    decodeURIComponent(req.path);
+    next();
+  } catch (err) {
+    if (err instanceof URIError) {
+      return res.status(400).send("Bad Request: Invalid URL Format");
+    }
+    next(err);
+  }
+});
+
 // Database connection
 const db = mysql.createPool({
   host: "MariaDB",
@@ -51,4 +64,4 @@ app.delete("/tasks/:id", async (req, res) => {
   res.sendStatus(200);
 });
 
-app.listen(5000, () => console.log("Server running on http://MariaDB:5000"));
+app.listen(5000, "0.0.0.0", () => console.log("Backend server running on port 5000"));
