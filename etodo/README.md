@@ -68,3 +68,22 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+### `database V1.0`
+
+CREATE DATABASE IF NOT EXISTS ETodo;
+USE ETodo;
+
+CREATE TABLE tasks (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL DEFAULT 1,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    priority INT DEFAULT 1,
+    assignee VARCHAR(100),
+    status VARCHAR(50) DEFAULT 'todo',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Verify it worked
+SHOW TABLES;

@@ -10,9 +10,9 @@ services:
     ports:
       - "5000:5000"
     networks:
-      - default # This tells Docker to use the bridge network
+      - default_bridge
 
 networks:
-  default:
+  default_bridge:
     external: true
     name: bridge

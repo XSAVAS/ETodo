@@ -26,7 +26,7 @@ function App() {
 
   useEffect(() => {
     const fetchTasks = async () => {
-      const response = await fetch("/tasks"); // Replace 1 with the logged-in user ID
+      const response = await fetch("/tasks/"); // Replace 1 with the logged-in user ID
       const data = await response.json();
       const groupedTasks = { todo: [], inProgress: [], done: [] };
       data.forEach((task) => {
