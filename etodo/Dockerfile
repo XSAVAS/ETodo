@@ -10,9 +10,9 @@ RUN npm run build
 FROM node:lts-alpine
 WORKDIR /usr/src/app
 
-# Copy dependency mappings and install dependencies
+# Copy dependency mappings and install ALL dependencies to prevent missing backend modules
 COPY package*.json ./
-RUN npm install --production
+RUN npm install
 
 # Copy backend files
 COPY server.js ./
