@@ -1,7 +1,6 @@
 services:
   server:
-    build:
-      context: .
+    build: .
     container_name: etodo-server
     restart: always
     environment:
@@ -9,10 +8,3 @@ services:
       DB_PASSWORD: ${DB_PASSWORD}
     ports:
       - "5000:5000"
-    networks:
-      - default_bridge
-
-networks:
-  default_bridge:
-    external: true
-    name: bridge
