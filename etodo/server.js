@@ -29,6 +29,16 @@ const db = mysql.createPool({
   database: "ETodo",
 });
 
+const path = require("path");
+
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, "build")));
+
+// Right above your app.listen line at the very bottom, handle any page refreshes
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "build", "index.html"));
+});
+
 // Get tasks for a user
 app.get("/tasks/:userId", async (req, res) => {
   const { userId } = req.params;
