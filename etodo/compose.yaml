@@ -4,7 +4,7 @@ services:
       context: .
     environment:
       NODE_ENV: production
-      DB_PASSWORD: "YOUR_ACTUAL_MARIADB_ROOT_PASSWORD_HERE" # Put your DB password here
+      DB_PASSWORD: "YOUR_ACTUAL_MARIADB_ROOT_PASSWORD_HERE"
     ports:
       - "5000:5000"
     networks:
@@ -12,5 +12,4 @@ services:
 
 networks:
   etodo_network:
-    external: true
-    name: portainer_default # Replace this with whatever network name your main mariadb container is using!
+    driver: bridge
