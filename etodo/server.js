@@ -31,47 +31,81 @@ const db = mysql.createPool({
 
 const path = require("path");
 
-// Serve static files from the React app build directory
+// 1. Serve static files from the React app build directory
 app.use(express.static(path.join(__dirname, "build")));
 
-// Right above your app.listen line at the very bottom, handle any page refreshes
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "build", "index.html"));
+// 2. Put your API Endpoints FIRST so Express can intercept them before the wildcard!
+
+// Fallback route if frontend fetches "/tasks" without an ID
+app.get("/tasks", async (req, res) => {
+  try {
+    const [rows] = await db.query("SELECT * FROM tasks WHERE user_id = 1");
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
 });
 
-// Get tasks for a user
+// Get tasks for a specific user
 app.get("/tasks/:userId", async (req, res) => {
-  const { userId } = req.params;
-  const [rows] = await db.query("SELECT * FROM tasks WHERE user_id = ?", [userId]);
-  res.json(rows);
+  try {
+    const { userId } = req.params;
+    const [rows] = await db.query("SELECT * FROM tasks WHERE user_id = ?", [userId]);
+    res.json(rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
 });
 
-// Add a new task
+// Add a new task (Injects default userId 1 if none provided by the frontend)
 app.post("/tasks", async (req, res) => {
-  const { userId, title, description, priority, assignee, status } = req.body;
-  const [result] = await db.query(
-    "INSERT INTO tasks (user_id, title, description, priority, assignee, status) VALUES (?, ?, ?, ?, ?, ?)",
-    [userId, title, description, priority, assignee, status]
-  );
-  res.json({ id: result.insertId });
+  try {
+    const { userId, title, description, priority, assignee, status } = req.body;
+    const finalUserId = userId || 1; 
+    const [result] = await db.query(
+      "INSERT INTO tasks (user_id, title, description, priority, assignee, status) VALUES (?, ?, ?, ?, ?, ?)",
+      [finalUserId, title, description, priority, assignee, status]
+    );
+    res.json({ id: result.insertId });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
 });
 
 // Update a task
 app.put("/tasks/:id", async (req, res) => {
-  const { id } = req.params;
-  const { title, description, priority, assignee, status } = req.body;
-  await db.query(
-    "UPDATE tasks SET title = ?, description = ?, priority = ?, assignee = ?, status = ? WHERE id = ?",
-    [title, description, priority, assignee, status, id]
-  );
-  res.sendStatus(200);
+  try {
+    const { id } = req.params;
+    const { title, description, priority, assignee, status } = req.body;
+    await db.query(
+      "UPDATE tasks SET title = ?, description = ?, priority = ?, assignee = ?, status = ? WHERE id = ?",
+      [title, description, priority, assignee, status, id]
+    );
+    res.sendStatus(200);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
 });
 
 // Delete a task
 app.delete("/tasks/:id", async (req, res) => {
-  const { id } = req.params;
-  await db.query("DELETE FROM tasks WHERE id = ?", [id]);
-  res.sendStatus(200);
+  try {
+    const { id } = req.params;
+    await db.query("DELETE FROM tasks WHERE id = ?", [id]);
+    res.sendStatus(200);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send(error.message);
+  }
+});
+
+// 3. Put your Wildcard catch-all at the VERY BOTTOM so it handles front-end routing page refreshes last
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "build", "index.html"));
 });
 
 app.listen(5000, "0.0.0.0", () => console.log("Backend server running on port 5000"));
