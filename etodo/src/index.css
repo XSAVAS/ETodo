@@ -38,16 +38,25 @@ body, html {
   box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15);
   display: flex;
   flex-direction: column;
-  /* max-height: 600px;
-  overflow-y: scroll;
-  overflow-x: hidden; */
+  
+  /* Prevents the column from forcing itself to be huge */
+  min-height: 100px; 
+  /* Height should be automatic, not forced */
+  height: auto; 
+  /* keeps it from getting too tall */
+  max-height: 600px; 
+  align-self:flex-start; /* Ensures columns align to the top */
 }
 
 /* Görev listesi kapsayıcısı */
 .task-list {
-  max-height: 400px;
-  overflow-y: scroll;
+  /* Use max-height instead of height */
+  max-height: 400px; 
+  overflow-y: auto; /* 'auto' is better than 'scroll' because it hides the bar when not needed */
   overflow-x: hidden;
+  
+  /* Ensures the list grows with the content, up to the max */
+  flex-grow: 1;
 }
 
 /* Sütun başlığı */
