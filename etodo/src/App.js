@@ -115,7 +115,11 @@ function App() {
   };
 
   // Silme işlemi
-  const handleDelete = (columnKey, taskId) => {
+  const handleDelete =  async (columnKey, taskId) => {
+    //accually delete from backend first, then update frontend state
+    await fetch(`/tasks/${taskId}`, {
+      method: "DELETE",
+    });
     setTasks((prev) => ({
       ...prev,
       [columnKey]: prev[columnKey].filter((task) => task.id !== taskId),
