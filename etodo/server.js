@@ -92,13 +92,21 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-// Update a task
+// Update a task (Handles full updates AND partial status updates)
 app.put("/tasks/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, priority, assignee, status } = req.body;
+    
+    // COALESCE checks if the incoming value is NULL; if so, it keeps the old value
     await db.query(
-      "UPDATE tasks SET title = ?, description = ?, priority = ?, assignee = ?, status = ? WHERE id = ?",
+      `UPDATE tasks 
+       SET title = COALESCE(?, title), 
+           description = COALESCE(?, description), 
+           priority = COALESCE(?, priority), 
+           assignee = COALESCE(?, assignee), 
+           status = COALESCE(?, status) 
+       WHERE id = ?`,
       [title, description, priority, assignee, status, id]
     );
     res.sendStatus(200);

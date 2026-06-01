@@ -71,26 +71,43 @@ function App() {
     setSelectedTask(null);
   };
 
-  // Drag & Drop işlemi
-  const onDragEnd = (result) => {
-    const { source, destination } = result;
-    if (!destination) return;
-    const sourceItems = Array.from(tasks[source.droppableId]);
-    const destItems = Array.from(tasks[destination.droppableId]);
-    const [moved] = sourceItems.splice(source.index, 1);
+  // Drag & Drop işlemi 
+  const onDragEnd = async (result) => {
+  const { source, destination, draggableId } = result;
 
-    if (source.droppableId === destination.droppableId) {
-      sourceItems.splice(destination.index, 0, moved);
-      setTasks((prev) => ({ ...prev, [source.droppableId]: sourceItems }));
-    } else {
-      destItems.splice(destination.index, 0, moved);
-      setTasks((prev) => ({
-        ...prev,
-        [source.droppableId]: sourceItems,
-        [destination.droppableId]: destItems,
-      }));
-    }
-  };
+  // 1. If dropped outside or in the same place, do nothing
+  if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) return;
+
+  const newStatus = destination.droppableId;
+
+  // 2. Sync with Backend
+  try {
+    await fetch(`/tasks/${draggableId}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status: newStatus }), 
+    });
+  } catch (error) {
+    console.error("Backend sync failed:", error);
+  }
+
+  // 3. Update Local UI State
+  const sourceItems = Array.from(tasks[source.droppableId]);
+  const destItems = Array.from(tasks[destination.droppableId]);
+  const [moved] = sourceItems.splice(source.index, 1);
+
+  if (source.droppableId === destination.droppableId) {
+    sourceItems.splice(destination.index, 0, moved);
+    setTasks((prev) => ({ ...prev, [source.droppableId]: sourceItems }));
+  } else {
+    destItems.splice(destination.index, 0, moved);
+    setTasks((prev) => ({
+      ...prev,
+      [source.droppableId]: sourceItems,
+      [destination.droppableId]: destItems,
+    }));
+  }
+};
 
   // Yeni görev eklemek için modalı aç
   const handleAddClick = (columnKey) => {
@@ -187,86 +204,48 @@ function App() {
   return (
     <div className="app-container">
       <h2 className="board-title">ToDo Board</h2>
-      <DragDropContext onDragEnd={onDragEnd}>
-        <div className="board">
-          {columns.map(({ key, title, color }) => (
-            <Droppable droppableId={key} key={key}>
-              {(provided) => (
-                <div
-                  className="column"
-                  ref={provided.innerRef}
-                  {...provided.droppableProps}
-                >
-                  <h5 className={`text-${color} text-center fw-bold mb-3`}>
-                    {title}
-                  </h5>
-                  {/* Görevlerin listelendiği alan */}
-                  <div className="task-list">
-                    {tasks[key].map((task, index) => (
-                      <Draggable
-                        key={task.id}
-                        draggableId={task.id}
-                        index={index}
-                      >
-                        {(provided) => (
-                          <div
-                            className="task-card"
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            {...provided.dragHandleProps}
-                            onClick={() => handleTaskDetail(task)}
-                            style={{
-                              ...provided.draggableProps.style,
-                              color: getPriorityColor(task.priority),
-                            }}
-                          >
-                            <span>{task.title}</span>
-                            {task.assignee && (
-                              <div className="assignee-info">
-                                {task.assignee}
-                              </div>
-                            )}
-                            <div
-                              className="actions"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <Button
-                                color="warning"
-                                size="sm"
-                                className="me-2"
-                                onClick={() => handleEditClick(key, task)}
-                              >
-                                Edit
-                              </Button>
-                              <Button
-                                color="danger"
-                                size="sm"
-                                onClick={() => handleDelete(key, task.id)}
-                              >
-                                Delete
-                              </Button>
-                            </div>
-                          </div>
-                        )}
-                      </Draggable>
-                    ))}
-                    {provided.placeholder}
-                  </div>
-                  <div className="text-center mt-2">
-                    <Button
-                      color="primary"
-                      size="sm"
-                      onClick={() => handleAddClick(key)}
+<DragDropContext onDragEnd={onDragEnd}>
+  <div className="board">
+    {columns.map(({ key, title, color }) => (
+      <Droppable droppableId={key} key={key}>
+        {(provided) => (
+          <div className="column" ref={provided.innerRef} {...provided.droppableProps}>
+            <h5 className={`text-${color} text-center fw-bold mb-3`}>{title}</h5>
+            <div className="task-list">
+              {tasks[key].map((task, index) => (
+                <Draggable key={task.id} draggableId={String(task.id)} index={index}>
+                  {(provided) => (
+                    <div
+                      className="task-card"
+                      ref={provided.innerRef}
+                      {...provided.draggableProps}
+                      {...provided.dragHandleProps} // <-- This enables the drag!
+                      onClick={() => handleTaskDetail(task)}
+                      style={{
+                        ...provided.draggableProps.style,
+                        color: getPriorityColor(task.priority),
+                      }}
                     >
-                      + Add Task
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </Droppable>
-          ))}
-        </div>
-      </DragDropContext>
+                      <span>{task.title}</span>
+                      <div className="actions" onClick={(e) => e.stopPropagation()}>
+                        <Button size="sm" color="warning" onClick={() => handleEditClick(key, task)}>Edit</Button>
+                        <Button size="sm" color="danger" onClick={() => handleDelete(key, task.id)}>Delete</Button>
+                      </div>
+                    </div>
+                  )}
+                </Draggable>
+              ))}
+              {provided.placeholder}
+            </div>
+            <div className="text-center mt-2">
+              <Button size="sm" color="primary" onClick={() => handleAddClick(key)}>+ Add Task</Button>
+            </div>
+          </div>
+        )}
+      </Droppable>
+    ))}
+  </div>
+</DragDropContext>
 
       {/* Add/Edit Modal */}
       <Modal isOpen={modalOpen} toggle={closeModal}>
