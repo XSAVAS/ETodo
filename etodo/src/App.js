@@ -139,7 +139,7 @@ function App() {
     };
 
     if (modalMode === "add") {
-      const response = await fetch("http://localhost:5000/tasks", {
+      const response = await fetch("/tasks", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTask),
@@ -150,7 +150,7 @@ function App() {
         [targetColumn]: [...prev[targetColumn], { ...newTask, id: savedTask.id }],
       }));
     } else if (modalMode === "edit") {
-      await fetch(`http://localhost:5000/tasks/${editTaskId}`, {
+      await fetch(`/tasks/${editTaskId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(newTask),
